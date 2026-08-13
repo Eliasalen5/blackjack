@@ -216,11 +216,11 @@
       .map((s) => {
         const cls = s.netResult >= 0 ? "positive" : "negative";
         return `<tr>
-          <td>${fmtDate(s.date)}</td>
-          <td class="num ${cls}">${fmtSigned(s.netResult)}</td>
-          <td class="num">${fmt(s.netResult / 2)}</td>
-          <td>${escapeHtml(s.note || "")}</td>
-          <td>
+          <td data-label="Fecha">${fmtDate(s.date)}</td>
+          <td data-label="Resultado neto" class="num ${cls}">${fmtSigned(s.netResult)}</td>
+          <td data-label="Por persona" class="num">${fmt(s.netResult / 2)}</td>
+          <td data-label="Nota">${escapeHtml(s.note || "")}</td>
+          <td data-label="" class="actions">
             <button class="btn-danger" data-act="edit" data-id="${s.id}">Editar</button>
             <button class="btn-danger" data-act="del" data-id="${s.id}">Borrar</button>
           </td>
