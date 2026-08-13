@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blackjack Control</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">BJ</span>
+      <h1>Blackjack Control</h1>
+    </div>
+    <div class="topbar-right">
+      <label class="month-picker">
+        <span>Mes:</span>
+        <input type="month" id="monthPicker">
+      </label>
+      <span id="storageBadge" class="badge badge-demo">Modo demo</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="cards">
+      <article class="card">
+        <h2>Pérdidas del mes</h2>
+        <p class="big" id="lossesValue">$0</p>
+        <div class="progress">
+          <div class="progress-fill" id="limitBar"></div>
+        </div>
+        <p class="sub" id="limitText">Límite $80.000 ($40.000 c/u)</p>
+      </article>
+
+      <article class="card">
+        <h2>Ganancia neta del mes</h2>
+        <p class="big" id="netValue">$0</p>
+        <p class="sub">Total conjunto</p>
+        <p class="sub" id="netPerPerson">$0 por persona</p>
+      </article>
+
+      <article class="card">
+        <h2>Días habilitados esta semana</h2>
+        <p class="big" id="daysValue">0 / 2</p>
+        <p class="sub" id="daysExtra">Sin días extra</p>
+        <p class="sub" id="daysPlayed">Jugados: 0</p>
+      </article>
+
+      <article class="card">
+        <h2>Estado de hoy</h2>
+        <p class="big" id="statusTitle">Cargando...</p>
+        <p class="sub" id="statusDetail"></p>
+      </article>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <h2>Registrar sesión</h2>
+        <form id="sessionForm">
+          <input type="hidden" id="sessionId">
+          <label>Fecha
+            <input type="date" id="sessionDate" required>
+          </label>
+
+          <fieldset class="radios">
+            <legend>Resultado</legend>
+            <label class="radio">
+              <input type="radio" name="result" value="gain" checked> Ganamos
+            </label>
+            <label class="radio">
+              <input type="radio" name="result" value="loss"> Perdimos
+            </label>
+          </fieldset>
+
+          <label>Monto apostado total
+            <input type="number" id="betTotal" min="0" step="1000" value="10000" required>
+          </label>
+
+          <label id="netLabel">Monto ganado (neto, total)
+            <input type="number" id="netAmount" step="100" placeholder="ej: 30000" required>
+          </label>
+
+          <label>Nota (opcional)
+            <input type="text" id="note" placeholder="ej: perdimos todo">
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="saveBtn">Guardar sesión</button>
+            <button type="button" class="btn btn-ghost hidden" id="cancelEdit">Cancelar edición</button>
+          </div>
+        </form>
+        <p class="hint">La apuesta mínima es $10.000 (5.000 c/u) pero pueden apostar cualquier monto mayor. Al marcar "Perdimos", el monto perdido se completa con la apuesta y pueden ajustarlo si perdieron solo parte. Ej: apuestan $20.000 y ganan $30.000 netos, se anota <strong>+$30.000</strong>.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Evolución acumulada del mes</h2>
+        <div class="chart-wrap">
+          <canvas id="chart"></canvas>
+        </div>
+        <div class="chart-empty hidden" id="chartEmpty">Sin sesiones este mes. Registra una sesión para ver el gráfico.</div>
+        <button type="button" class="btn btn-ghost hidden" id="seedBtn">Cargar datos de ejemplo</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Historial de sesiones (<span id="historyMonth"></span>)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Apuesta</th>
+              <th>Resultado neto</th>
+              <th>Por persona</th>
+              <th>Nota</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="emptyHistory">Todavía no hay sesiones este mes.</p>
+    </section>
+  </main>
+
+  <footer class="footer" id="footer">Los datos se guardan en Firebase Firestore.</footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
