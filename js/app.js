@@ -23,7 +23,6 @@
     form: $("sessionForm"),
     sessionId: $("sessionId"),
     sessionDate: $("sessionDate"),
-    betTotal: $("betTotal"),
     netAmount: $("netAmount"),
     netLabel: $("netLabel"),
     note: $("note"),
@@ -171,7 +170,6 @@
         const cls = s.netResult >= 0 ? "positive" : "negative";
         return `<tr>
           <td>${fmtDate(s.date)}</td>
-          <td class="num">${fmt(s.betTotal)}</td>
           <td class="num ${cls}">${fmtSigned(s.netResult)}</td>
           <td class="num">${fmt(s.netResult / 2)}</td>
           <td>${escapeHtml(s.note || "")}</td>
@@ -274,22 +272,10 @@
       : "Monto perdido (total)";
   }
 
-  // Si perdieron, la pérdida máxima es lo apostado: la completa sola
-  // con la apuesta (queda editable por si perdieron solo parte).
-  function syncLossToBet(force) {
-    if (currentResultIsGain()) return;
-    const bet = els.betTotal.value;
-    const current = els.netAmount.value;
-    if (force || current === "" || Number(current) === 0) {
-      els.netAmount.value = bet;
-    }
-  }
-
   function resetForm() {
     editingId = null;
     els.form.reset();
     els.sessionDate.value = todayStr();
-    els.betTotal.value = RULES.defaultBetTotal;
     els.saveBtn.textContent = "Guardar sesión";
     els.cancelEdit.classList.add("hidden");
     updateNetLabel();
@@ -299,7 +285,6 @@
     editingId = session.id;
     els.sessionId.value = session.id;
     els.sessionDate.value = session.date;
-    els.betTotal.value = session.betTotal;
     els.netAmount.value = Math.abs(session.netResult);
     els.note.value = session.note || "";
     const gain = session.netResult >= 0;
@@ -313,7 +298,6 @@
   async function handleSubmit(e) {
     e.preventDefault();
     const date = els.sessionDate.value;
-    const betTotal = Number(els.betTotal.value) || 0;
     const amount = Number(els.netAmount.value) || 0;
     const gain = currentResultIsGain();
     const netResult = gain ? amount : -amount;
@@ -324,16 +308,7 @@
       return;
     }
 
-    if (!gain && amount > betTotal) {
-      alert(
-        "No se puede perder más de lo apostado. Si perdieron todo, el monto perdido es la apuesta (" +
-          fmt(betTotal) +
-          ")."
-      );
-      return;
-    }
-
-    const session = { date, betTotal, netResult, note };
+    const session = { date, netResult, note };
 
     try {
       if (editingId) {
@@ -384,11 +359,11 @@
       return toISO(d);
     };
     const demo = [
-      { date: addDays(-8), betTotal: 20000, netResult: -20000, note: "Perdimos todo" },
-      { date: addDays(-6), betTotal: 10000, netResult: 30000, note: "Buena racha" },
-      { date: addDays(-4), betTotal: 15000, netResult: -10000, note: "Perdimos parte" },
-      { date: addDays(-2), betTotal: 10000, netResult: 25000, note: "Ganamos" },
-      { date: addDays(0), betTotal: 20000, netResult: 15000, note: "Hoy ganamos" },
+      { date: addDays(-8), netResult: -20000, note: "Perdimos todo" },
+      { date: addDays(-6), netResult: 30000, note: "Buena racha" },
+      { date: addDays(-4), netResult: -10000, note: "Perdimos parte" },
+      { date: addDays(-2), netResult: 25000, note: "Ganamos" },
+      { date: addDays(0), netResult: 15000, note: "Hoy ganamos" },
     ];
     Promise.all(demo.map((d) => DataService.addSession(d)))
       .then(loadAndRender)
@@ -416,12 +391,8 @@
     els.form.addEventListener("submit", handleSubmit);
     els.historyBody.addEventListener("click", handleHistoryClick);
     els.cancelEdit.addEventListener("click", resetForm);
-    els.betTotal.addEventListener("input", () => syncLossToBet(false));
     document.querySelectorAll('input[name="result"]').forEach((r) =>
-      r.addEventListener("change", () => {
-        updateNetLabel();
-        syncLossToBet(true);
-      })
+      r.addEventListener("change", updateNetLabel)
     );
     els.seedBtn.addEventListener("click", seedDemoData);
 

@@ -2,8 +2,6 @@
 
 const RULES = {
   daysPerWeek: 2,             // martes y jueves
-  minBetPerPerson: 5000,      // mínimo por persona por sesión
-  defaultBetTotal: 10000,     // 5.000 x 2 personas
   monthLimitTotal: 80000,     // 40.000 por persona x 2
   monthLimitPerPerson: 40000,
   extraDayThreshold: 30000,   // cada $30.000 de ganancia neta = 1 día extra

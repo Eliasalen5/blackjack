@@ -72,10 +72,6 @@
             </label>
           </fieldset>
 
-          <label>Monto apostado total
-            <input type="number" id="betTotal" min="0" step="1000" value="10000" required>
-          </label>
-
           <label id="netLabel">Monto ganado (neto, total)
             <input type="number" id="netAmount" step="100" placeholder="ej: 30000" required>
           </label>
@@ -89,7 +85,7 @@
             <button type="button" class="btn btn-ghost hidden" id="cancelEdit">Cancelar edición</button>
           </div>
         </form>
-        <p class="hint">La apuesta mínima es $10.000 (5.000 c/u) pero pueden apostar cualquier monto mayor. Al marcar "Perdimos", el monto perdido se completa con la apuesta y pueden ajustarlo si perdieron solo parte. Ej: apuestan $20.000 y ganan $30.000 netos, se anota <strong>+$30.000</strong>.</p>
+        <p class="hint">Anotá cuánto ganaron o perdieron en la sesión. Ej: si jugaron y terminaron con $30.000 de ganancia neta, se anota <strong>+$30.000</strong>. Si perdieron todo lo jugado, se anota la pérdida.</p>
       </div>
 
       <div class="panel">
@@ -109,7 +105,6 @@
           <thead>
             <tr>
               <th>Fecha</th>
-              <th>Apuesta</th>
               <th>Resultado neto</th>
               <th>Por persona</th>
               <th>Nota</th>
