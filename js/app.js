@@ -24,7 +24,7 @@
     sessionId: $("sessionId"),
     sessionDate: $("sessionDate"),
     netAmount: $("netAmount"),
-    netLabel: $("netLabel"),
+    netLabelText: $("netLabelText"),
     note: $("note"),
     saveBtn: $("saveBtn"),
     cancelEdit: $("cancelEdit"),
@@ -267,7 +267,7 @@
   }
 
   function updateNetLabel() {
-    els.netLabel.textContent = currentResultIsGain()
+    els.netLabelText.textContent = currentResultIsGain()
       ? "Monto ganado (neto, total)"
       : "Monto perdido (total)";
   }
