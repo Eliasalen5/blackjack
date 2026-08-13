@@ -21,10 +21,10 @@
 // ============================================================
 
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyDA7AbPh2gyK7jYOSBIPkFYQm4d2tm7ppU",
+  authDomain: "blackjack-f355b.firebaseapp.com",
+  projectId: "blackjack-f355b",
+  storageBucket: "blackjack-f355b.firebasestorage.app",
+  messagingSenderId: "901661920281",
+  appId: "1:901661920281:web:3ed249b63337caf0f3ee88"
 };
