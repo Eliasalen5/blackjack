@@ -21,6 +21,7 @@
     statusTitle: $("statusTitle"),
     statusDetail: $("statusDetail"),
     form: $("sessionForm"),
+    formAlert: $("formAlert"),
     sessionId: $("sessionId"),
     sessionDate: $("sessionDate"),
     netAmount: $("netAmount"),
@@ -76,6 +77,7 @@
     renderNetCard(stats);
     renderDaysCard(stats, isCurrentMonth);
     renderStatus(stats, isCurrentMonth);
+    applyFormBlock(stats, isCurrentMonth);
     renderHistory(stats, monthKey);
     renderChart(stats);
     updateSeedButton();
@@ -156,6 +158,51 @@
     const startKey = toISO(start);
     const endKey = toISO(end);
     return sessions.filter((s) => s.date >= startKey && s.date <= endKey).length;
+  }
+
+  // Bloquea el formulario cuando no se puede registrar una sesión nueva
+  // (mes no vigente, límite alcanzado o sin días disponibles esta semana).
+  function canRegisterToday(stats, isCurrentMonth) {
+    if (!isCurrentMonth) {
+      return { allowed: false, reason: "El registro de sesiones es para el mes actual. Cambiá el mes arriba para ver el histórico." };
+    }
+    if (limitReached(stats.losses)) {
+      return { allowed: false, reason: `Límite mensual alcanzado (${fmt(RULES.monthLimitTotal)} perdidos). No pueden jugar más este mes.` };
+    }
+    const played = daysPlayedThisWeek();
+    const allowed = allowedDays(stats.net);
+    if (played >= allowed) {
+      return { allowed: false, reason: `Sin días disponibles esta semana: jugaron ${played} de ${allowed} habilitados. Ganando más plata se habilita otro día.` };
+    }
+    return { allowed: true, reason: "" };
+  }
+
+  function applyFormBlock(stats, isCurrentMonth) {
+    if (editingId) {
+      unblockForm();
+      return;
+    }
+    const res = canRegisterToday(stats, isCurrentMonth);
+    if (res.allowed) {
+      unblockForm();
+      return;
+    }
+    blockForm(res.reason);
+  }
+
+  function blockForm(reason) {
+    els.formAlert.textContent = reason;
+    els.formAlert.classList.remove("hidden");
+    els.form.querySelectorAll("input, button").forEach((el) => {
+      if (el !== els.cancelEdit) el.disabled = true;
+    });
+  }
+
+  function unblockForm() {
+    els.formAlert.classList.add("hidden");
+    els.form.querySelectorAll("input, button").forEach((el) => {
+      el.disabled = false;
+    });
   }
 
   // ---------- Historial ----------
@@ -283,6 +330,7 @@
 
   function startEdit(session) {
     editingId = session.id;
+    unblockForm();
     els.sessionId.value = session.id;
     els.sessionDate.value = session.date;
     els.netAmount.value = Math.abs(session.netResult);
@@ -390,7 +438,10 @@
     els.sessionDate.value = todayStr();
     els.form.addEventListener("submit", handleSubmit);
     els.historyBody.addEventListener("click", handleHistoryClick);
-    els.cancelEdit.addEventListener("click", resetForm);
+    els.cancelEdit.addEventListener("click", () => {
+      resetForm();
+      renderAll();
+    });
     document.querySelectorAll('input[name="result"]').forEach((r) =>
       r.addEventListener("change", updateNetLabel)
     );
