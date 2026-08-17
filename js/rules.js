@@ -4,7 +4,7 @@ const RULES = {
   daysPerWeek: 2,             // martes y jueves
   monthLimitTotal: 80000,     // 40.000 por persona x 2
   monthLimitPerPerson: 40000,
-  extraDayThreshold: 30000,   // cada $30.000 de ganancia neta = 1 día extra
+  extraDayThreshold: 60000,   // cada $60.000 de ganancia neta semanal ($30k x 2 personas) = 1 día extra
 };
 
 function todayStr() {
@@ -65,14 +65,26 @@ function monthStats(sessions, monthKey) {
   return { sessions: month, count: month.length, losses, gains, net };
 }
 
-// Días extra: 1 por cada $30.000 de ganancia neta acumulada.
-function extraDaysFor(net) {
-  return Math.floor(Math.max(0, net) / RULES.extraDayThreshold);
+// Días extra: 1 por cada $60.000 de ganancia neta de la semana actual.
+function extraDaysForWeekly(weekNet) {
+  return Math.floor(Math.max(0, weekNet) / RULES.extraDayThreshold);
 }
 
-// Días habilitados en la semana: 2 base + extras, máximo 7.
-function allowedDays(net) {
-  return Math.min(7, RULES.daysPerWeek + extraDaysFor(net));
+// Días habilitados en la semana: 2 base + extras (calculados por semana), máximo 7.
+function allowedDays(weekNet) {
+  return Math.min(7, RULES.daysPerWeek + extraDaysForWeekly(weekNet));
+}
+
+// Ganancia neta de la semana actual.
+function weekNet(sessions) {
+  const { start, end } = currentWeekRange();
+  const startKey = toISO(start);
+  const endKey = toISO(end);
+  let net = 0;
+  sessions.forEach((s) => {
+    if (s.date >= startKey && s.date <= endKey) net += s.netResult;
+  });
+  return net;
 }
 
 function limitReached(losses) {

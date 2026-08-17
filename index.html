@@ -98,8 +98,12 @@
             </label>
           </fieldset>
 
-          <label id="netLabel"><span id="netLabelText">Monto ganado (neto, total)</span>
-            <input type="number" id="netAmount" step="100" placeholder="ej: 30000" required>
+          <label id="netLabel"><span id="netLabelText">Ganancia bruta</span>
+            <input type="number" id="netAmount" step="100" placeholder="ej: 50000" required>
+          </label>
+
+          <label id="betLabel">Apuesta realizada
+            <input type="number" id="betAmount" step="100" placeholder="ej: 20000" required>
           </label>
 
           <label>Nota (opcional)
@@ -111,7 +115,7 @@
             <button type="button" class="btn btn-ghost hidden" id="cancelEdit">Cancelar edición</button>
           </div>
         </form>
-        <p class="hint">Anotá cuánto ganaron o perdieron en la sesión. Ej: si jugaron y terminaron con $30.000 de ganancia neta, se anota <strong>+$30.000</strong>. Si perdieron todo lo jugado, se anota la pérdida.</p>
+        <p class="hint">Ingresá la ganancia bruta y la apuesta realizada. La ganancia neta se calcula automáticamente (Ganancia bruta − Apuesta). Si perdieron, seleccioná "Perdimos" e ingresá la apuesta.</p>
       </div>
 
       <div class="panel">
@@ -131,8 +135,8 @@
           <thead>
             <tr>
               <th>Fecha</th>
+              <th>Apuesta</th>
               <th>Resultado neto</th>
-              <th>Por persona</th>
               <th>Nota</th>
               <th></th>
             </tr>

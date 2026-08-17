@@ -26,6 +26,7 @@
     sessionDate: $("sessionDate"),
     netAmount: $("netAmount"),
     netLabelText: $("netLabelText"),
+    betAmount: $("betAmount"),
     note: $("note"),
     saveBtn: $("saveBtn"),
     cancelEdit: $("cancelEdit"),
@@ -95,7 +96,7 @@
   function renderNetCard(stats) {
     els.netValue.textContent = fmtSigned(stats.net);
     els.netValue.className = "big " + (stats.net >= 0 ? "positive" : "negative");
-    els.netPerPerson.textContent = `${fmtSigned(stats.net / 2)} por persona`;
+    els.netPerPerson.textContent = `${fmtSigned(stats.gains)} ganados − ${fmt(stats.losses)} perdidos`;
   }
 
   function renderDaysCard(stats, isCurrentMonth) {
@@ -105,13 +106,14 @@
       els.daysPlayed.textContent = "";
       return;
     }
-    const extra = extraDaysFor(stats.net);
-    const allowed = allowedDays(stats.net);
+    const wNet = weekNet(sessions);
+    const extra = extraDaysForWeekly(wNet);
+    const allowed = allowedDays(wNet);
     const played = daysPlayedThisWeek();
     els.daysValue.textContent = `${played} / ${allowed}`;
     els.daysExtra.textContent =
       extra > 0
-        ? `Días extra: +${extra} (cada ${fmt(RULES.extraDayThreshold)} de ganancia)`
+        ? `Días extra: +${extra} (esta semana: ${fmtSigned(wNet)} neta)`
         : "Sin días extra aún";
     els.daysPlayed.textContent = "Jugados esta semana: " + played;
   }
@@ -122,7 +124,8 @@
       return;
     }
     const played = daysPlayedThisWeek();
-    const allowed = allowedDays(stats.net);
+    const wNet = weekNet(sessions);
+    const allowed = allowedDays(wNet);
     const daysLeft = allowed - played;
     const budget = remainingBudget(stats.losses);
 
@@ -170,7 +173,8 @@
       return { allowed: false, reason: `Límite mensual alcanzado (${fmt(RULES.monthLimitTotal)} perdidos). No pueden jugar más este mes.` };
     }
     const played = daysPlayedThisWeek();
-    const allowed = allowedDays(stats.net);
+    const wNet = weekNet(sessions);
+    const allowed = allowedDays(wNet);
     if (played >= allowed) {
       return { allowed: false, reason: `Sin días disponibles esta semana: jugaron ${played} de ${allowed} habilitados. Ganando más plata se habilita otro día.` };
     }
@@ -217,8 +221,8 @@
         const cls = s.netResult >= 0 ? "positive" : "negative";
         return `<tr>
           <td data-label="Fecha">${fmtDate(s.date)}</td>
+          <td data-label="Apuesta" class="num">${fmt(s.bet || 0)}</td>
           <td data-label="Resultado neto" class="num ${cls}">${fmtSigned(s.netResult)}</td>
-          <td data-label="Por persona" class="num">${fmt(s.netResult / 2)}</td>
           <td data-label="Nota">${escapeHtml(s.note || "")}</td>
           <td data-label="" class="actions">
             <button class="btn-danger" data-act="edit" data-id="${s.id}">Editar</button>
@@ -314,9 +318,9 @@
   }
 
   function updateNetLabel() {
-    els.netLabelText.textContent = currentResultIsGain()
-      ? "Monto ganado (neto, total)"
-      : "Monto perdido (total)";
+    const isGain = currentResultIsGain();
+    els.netLabelText.textContent = isGain ? "Ganancia bruta" : "Monto perdido (total)";
+    els.betAmount.placeholder = isGain ? "ej: 20000" : "ej: 30000";
   }
 
   function resetForm() {
@@ -333,10 +337,17 @@
     unblockForm();
     els.sessionId.value = session.id;
     els.sessionDate.value = session.date;
-    els.netAmount.value = Math.abs(session.netResult);
     els.note.value = session.note || "";
     const gain = session.netResult >= 0;
     document.querySelector('input[name="result"][value="' + (gain ? "gain" : "loss") + '"]').checked = true;
+    if (gain) {
+      const gross = session.netResult + (session.bet || 0);
+      els.netAmount.value = gross;
+      els.betAmount.value = session.bet || 0;
+    } else {
+      els.netAmount.value = 0;
+      els.betAmount.value = Math.abs(session.netResult);
+    }
     updateNetLabel();
     els.saveBtn.textContent = "Actualizar sesión";
     els.cancelEdit.classList.remove("hidden");
@@ -346,17 +357,26 @@
   async function handleSubmit(e) {
     e.preventDefault();
     const date = els.sessionDate.value;
-    const amount = Number(els.netAmount.value) || 0;
+    const grossGain = Number(els.netAmount.value) || 0;
+    const bet = Number(els.betAmount.value) || 0;
     const gain = currentResultIsGain();
-    const netResult = gain ? amount : -amount;
+    const netResult = gain ? grossGain - bet : -bet;
     const note = els.note.value.trim();
 
-    if (amount <= 0) {
-      alert("Ingresá un monto mayor a cero.");
+    if (gain && grossGain <= 0) {
+      alert("Ingresá la ganancia bruta mayor a cero.");
+      return;
+    }
+    if (bet <= 0) {
+      alert("Ingresá la apuesta realizada mayor a cero.");
+      return;
+    }
+    if (gain && grossGain < bet) {
+      alert("La ganancia bruta no puede ser menor a la apuesta.");
       return;
     }
 
-    const session = { date, netResult, note };
+    const session = { date, netResult, bet, note };
 
     try {
       if (editingId) {
@@ -407,11 +427,11 @@
       return toISO(d);
     };
     const demo = [
-      { date: addDays(-8), netResult: -20000, note: "Perdimos todo" },
-      { date: addDays(-6), netResult: 30000, note: "Buena racha" },
-      { date: addDays(-4), netResult: -10000, note: "Perdimos parte" },
-      { date: addDays(-2), netResult: 25000, note: "Ganamos" },
-      { date: addDays(0), netResult: 15000, note: "Hoy ganamos" },
+      { date: addDays(-8), netResult: -20000, bet: 20000, note: "Perdimos todo" },
+      { date: addDays(-6), netResult: 10000, bet: 20000, note: "Buena racha", grossGain: 30000 },
+      { date: addDays(-4), netResult: -10000, bet: 10000, note: "Perdimos parte" },
+      { date: addDays(-2), netResult: 5000, bet: 20000, note: "Ganamos", grossGain: 25000 },
+      { date: addDays(0), netResult: 15000, bet: 10000, note: "Hoy ganamos", grossGain: 25000 },
     ];
     Promise.all(demo.map((d) => DataService.addSession(d)))
       .then(loadAndRender)
