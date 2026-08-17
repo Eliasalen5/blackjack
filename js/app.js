@@ -27,6 +27,7 @@
     netAmount: $("netAmount"),
     netLabelText: $("netLabelText"),
     betAmount: $("betAmount"),
+    betLabel: $("betLabel"),
     note: $("note"),
     saveBtn: $("saveBtn"),
     cancelEdit: $("cancelEdit"),
@@ -320,7 +321,8 @@
   function updateNetLabel() {
     const isGain = currentResultIsGain();
     els.netLabelText.textContent = isGain ? "Ganancia bruta" : "Monto perdido (total)";
-    els.betAmount.placeholder = isGain ? "ej: 20000" : "ej: 30000";
+    els.betLabel.style.display = isGain ? "" : "none";
+    els.betAmount.required = isGain;
   }
 
   function resetForm() {
@@ -357,21 +359,21 @@
   async function handleSubmit(e) {
     e.preventDefault();
     const date = els.sessionDate.value;
-    const grossGain = Number(els.netAmount.value) || 0;
-    const bet = Number(els.betAmount.value) || 0;
     const gain = currentResultIsGain();
-    const netResult = gain ? grossGain - bet : -bet;
+    const amount = Number(els.netAmount.value) || 0;
+    const bet = gain ? (Number(els.betAmount.value) || 0) : amount;
+    const netResult = gain ? amount - bet : -amount;
     const note = els.note.value.trim();
 
-    if (gain && grossGain <= 0) {
-      alert("Ingresá la ganancia bruta mayor a cero.");
+    if (amount <= 0) {
+      alert("Ingresá un monto mayor a cero.");
       return;
     }
-    if (bet <= 0) {
+    if (gain && bet <= 0) {
       alert("Ingresá la apuesta realizada mayor a cero.");
       return;
     }
-    if (gain && grossGain < bet) {
+    if (gain && amount < bet) {
       alert("La ganancia bruta no puede ser menor a la apuesta.");
       return;
     }
